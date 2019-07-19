@@ -1,8 +1,8 @@
 extern crate render_engine as re;
 use re::*;
 
-mod boid;
-use boid::Boid;
+mod world;
+use world::BoidWorld;
 
 fn main() {
     let mut app = App::new();
@@ -11,10 +11,10 @@ fn main() {
     camera.orbit_distance = 10.0;
     app.camera = Box::new(camera);
 
-    let mut boid = Boid::new("jeff".to_string(), app.get_world_com(), (0.0, 0.0, 0.0));
+    let mut world = BoidWorld::new(app.get_world_com());
 
     while !app.done {
-        boid.update_mesh();
+        world.update(app.delta);
 
         app.draw_frame();
     }
