@@ -46,6 +46,11 @@ impl BoidWorld {
         let div = self.boids.len() as f32;
         let center_pos = Point3::new(sum_x / div, sum_y / div, sum_z / div);
 
+        let v_sum_x: f32 = self.velocities.iter().map(|vel| vel.x).sum();
+        let v_sum_y: f32 = self.velocities.iter().map(|vel| vel.y).sum();
+        let v_sum_z: f32 = self.velocities.iter().map(|vel| vel.z).sum();
+        let avg_vel = Vector3::new(v_sum_x / div, v_sum_y / div, v_sum_z / div);
+
         self.velocities = self
             .boids
             .iter()
@@ -79,9 +84,9 @@ impl BoidWorld {
                     );
 
                 let force = Vector3::new(
-                    cohesion.x - separation.0,
-                    cohesion.y - separation.1,
-                    cohesion.z - separation.2,
+                    cohesion.x - separation.0 + avg_vel.x,
+                    cohesion.y - separation.1 + avg_vel.y,
+                    cohesion.z - separation.2 + avg_vel.z,
                 ) * delta
                     * 4.0;
                 let mut new_vel = self.velocities[idx] + force;
