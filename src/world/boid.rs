@@ -12,8 +12,8 @@ const BOID_SIZE: f32 = 0.3;
 pub struct Boid {
     id: String,
     world_com: WorldCommunicator,
-    position: Point3<f32>,
-    velocity: Vector3<f32>,
+    pub position: Point3<f32>,
+    pub velocity: Vector3<f32>,
 }
 
 impl Boid {
@@ -27,10 +27,6 @@ impl Boid {
             position: Point3::new(position.0, position.1, position.2),
             velocity,
         }
-    }
-
-    pub fn update_position(&mut self, delta: f32) {
-        self.position += self.velocity * delta;
     }
 
     pub fn update_mesh(&mut self) {

@@ -18,4 +18,6 @@ fn main() {
 
         app.draw_frame();
     }
+
+    app.print_fps();
 }
