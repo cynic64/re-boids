@@ -76,7 +76,8 @@ impl BoidWorld {
                     + (repulsor.y - pos.y).powi(2)
                     + (repulsor.z - pos.z).powi(2))
                 .sqrt();
-                let repulsion = (repulsor - pos).normalize() * -1.0 * (1.0 / repulsion_distance) * 100.0;
+                let repulsion =
+                    (repulsor - pos).normalize() * -1.0 * (1.0 / repulsion_distance) * 100.0;
 
                 let cohesion = (center_pos - pos).normalize() * MAX_VEL;
                 let separation = self
@@ -147,14 +148,24 @@ impl BoidWorld {
         let time = get_elapsed(self.start_time);
         self.attractor.x = (time / 4.0).sin() * 16.0;
         self.attractor.z = (time / 4.0).cos() * 16.0;
-        let attractor_verts = mesh_gen::create_vertices_for_sphere([self.attractor.x, self.attractor.y, self.attractor.z], BOID_SIZE * 8.0, [0.0, 0.5, 1.0]);
+        let attractor_verts = mesh_gen::create_vertices_for_sphere(
+            [self.attractor.x, self.attractor.y, self.attractor.z],
+            BOID_SIZE * 8.0,
+            [0.0, 0.5, 1.0],
+        );
         let attractor_spec = ObjectSpec::from_mesh(attractor_verts);
-        self.world_com.add_object_from_spec("attractor".to_string(), attractor_spec);
+        self.world_com
+            .add_object_from_spec("attractor".to_string(), attractor_spec);
 
-        self.repulsor.x = (time).sin() * 16.0;
-        self.repulsor.y = (time).cos() * 16.0;
-        let repulsor_verts = mesh_gen::create_vertices_for_sphere([self.repulsor.x, self.repulsor.y, self.repulsor.z], BOID_SIZE * 8.0, [1.0, 0.0, 0.5]);
+        self.repulsor.x = time.sin() * 16.0;
+        self.repulsor.y = time.cos() * 16.0;
+        let repulsor_verts = mesh_gen::create_vertices_for_sphere(
+            [self.repulsor.x, self.repulsor.y, self.repulsor.z],
+            BOID_SIZE * 8.0,
+            [1.0, 0.0, 0.5],
+        );
         let repulsor_spec = ObjectSpec::from_mesh(repulsor_verts);
-        self.world_com.add_object_from_spec("repulsor".to_string(), repulsor_spec);
+        self.world_com
+            .add_object_from_spec("repulsor".to_string(), repulsor_spec);
     }
 }
