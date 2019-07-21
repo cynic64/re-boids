@@ -12,6 +12,7 @@ pub struct BoidWorld {
     boids: Vec<Point3<f32>>,
     velocities: Vec<Vector3<f32>>,
     attractor: Point3<f32>,
+    repulsor: Point3<f32>,
     world_com: WorldCommunicator,
     start_time: std::time::Instant,
 }
@@ -31,6 +32,7 @@ impl BoidWorld {
             .collect();
 
         let attractor = Point3::new(0.0, 0.0, 0.0);
+        let repulsor = Point3::new(0.0, 0.0, 0.0);
 
         let velocities = vec![Vector3::new(0.0, 0.0, 0.0); 1_000];
 
@@ -38,6 +40,7 @@ impl BoidWorld {
             boids,
             velocities,
             attractor,
+            repulsor,
             world_com,
             start_time: std::time::Instant::now(),
         }
@@ -46,6 +49,7 @@ impl BoidWorld {
     pub fn update(&mut self, delta: f32) {
         self.world_com.delete_object("boids".to_string());
         self.world_com.delete_object("attractor".to_string());
+        self.world_com.delete_object("repulsor".to_string());
 
         let sum_x: f32 = self.boids.iter().map(|boid| boid.x).sum();
         let sum_y: f32 = self.boids.iter().map(|boid| boid.y).sum();
@@ -59,6 +63,7 @@ impl BoidWorld {
         let avg_vel = Vector3::new(v_sum_x / div, v_sum_y / div, v_sum_z / div);
 
         let attractor = self.attractor.clone();
+        let repulsor = self.repulsor.clone();
 
         self.velocities = self
             .boids
@@ -66,6 +71,12 @@ impl BoidWorld {
             .enumerate()
             .map(|(idx, pos)| {
                 let attraction = (attractor - pos).normalize() * MAX_VEL * 2.0;
+                let repulsion_distance = ((repulsor.x - pos.x).powi(2)
+                    + (repulsor.y - pos.y).powi(2)
+                    + (repulsor.z - pos.z).powi(2))
+                .sqrt();
+                let repulsion = (repulsor - pos).normalize() * -1.0 * (1.0 / repulsion_distance) * 100.0;
+
                 let cohesion = (center_pos - pos).normalize() * MAX_VEL;
                 let separation = self
                     .boids
@@ -94,9 +105,9 @@ impl BoidWorld {
                     );
 
                 let force = Vector3::new(
-                    cohesion.x - separation.0 + avg_vel.x + attraction.x,
-                    cohesion.y - separation.1 + avg_vel.y + attraction.y,
-                    cohesion.z - separation.2 + avg_vel.z + attraction.z,
+                    cohesion.x - separation.0 + avg_vel.x + attraction.x + repulsion.x,
+                    cohesion.y - separation.1 + avg_vel.y + attraction.y + repulsion.y,
+                    cohesion.z - separation.2 + avg_vel.z + attraction.z + repulsion.z,
                 ) * delta
                     * 4.0;
                 let mut new_vel = self.velocities[idx] + force;
@@ -133,10 +144,16 @@ impl BoidWorld {
             .add_object_from_spec("boids".to_string(), object_spec);
 
         let time = get_elapsed(self.start_time);
-        self.attractor.x = (time / 2.0).sin() * 16.0;
-        self.attractor.z = (time / 2.0).cos() * 16.0;
-        let attractor_verts = mesh_gen::create_vertices_for_sphere([self.attractor.x, self.attractor.y, self.attractor.z], BOID_SIZE * 8.0, [1.0, 1.0, 0.0]);
+        self.attractor.x = (time / 4.0).sin() * 16.0;
+        self.attractor.z = (time / 4.0).cos() * 16.0;
+        let attractor_verts = mesh_gen::create_vertices_for_sphere([self.attractor.x, self.attractor.y, self.attractor.z], BOID_SIZE * 8.0, [0.0, 0.5, 1.0]);
         let attractor_spec = ObjectSpec::from_mesh(attractor_verts);
         self.world_com.add_object_from_spec("attractor".to_string(), attractor_spec);
+
+        self.repulsor.z = (time / 1.4).sin() * 16.0;
+        self.repulsor.y = (time / 1.4).cos() * 16.0;
+        let repulsor_verts = mesh_gen::create_vertices_for_sphere([self.repulsor.x, self.repulsor.y, self.repulsor.z], BOID_SIZE * 8.0, [1.0, 0.0, 0.5]);
+        let repulsor_spec = ObjectSpec::from_mesh(repulsor_verts);
+        self.world_com.add_object_from_spec("repulsor".to_string(), repulsor_spec);
     }
 }
