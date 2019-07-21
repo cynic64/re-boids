@@ -2,12 +2,13 @@ use rand::Rng;
 use re::*;
 
 extern crate nalgebra as na;
-use na::{Point3, Vector3};
+use na::{distance, Point3, Vector3};
 
 use crate::WORLD_RADIUS;
 
 const BOID_SIZE: f32 = 0.1;
 const MAX_VEL: f32 = 5.0;
+const BOID_COUNT: usize = 1_000;
 
 pub struct BoidWorld {
     boids: Vec<Point3<f32>>,
@@ -22,7 +23,7 @@ impl BoidWorld {
     pub fn new(world_com: WorldCommunicator) -> Self {
         let mut rng = rand::thread_rng();
 
-        let boids: Vec<_> = (0..1_000)
+        let boids: Vec<_> = (0..BOID_COUNT)
             .map(|_| {
                 Point3::new(
                     rng.gen_range(-WORLD_RADIUS, WORLD_RADIUS),
@@ -35,7 +36,7 @@ impl BoidWorld {
         let attractor = Point3::new(0.0, 0.0, 0.0);
         let repulsor = Point3::new(0.0, 0.0, 0.0);
 
-        let velocities = vec![Vector3::new(0.0, 0.0, 0.0); 1_000];
+        let velocities = vec![Vector3::new(0.0, 0.0, 0.0); BOID_COUNT];
 
         BoidWorld {
             boids,
@@ -72,10 +73,7 @@ impl BoidWorld {
             .enumerate()
             .map(|(idx, pos)| {
                 let attraction = (attractor - pos).normalize() * MAX_VEL * 2.0;
-                let repulsion_distance = ((repulsor.x - pos.x).powi(2)
-                    + (repulsor.y - pos.y).powi(2)
-                    + (repulsor.z - pos.z).powi(2))
-                .sqrt();
+                let repulsion_distance = distance(&repulsor, &pos);
                 let repulsion =
                     (repulsor - pos).normalize() * -1.0 * (1.0 / repulsion_distance) * 100.0;
 
@@ -99,9 +97,9 @@ impl BoidWorld {
                         (0.0, 0.0, 0.0),
                         |acc: (f32, f32, f32), (idx, _boid, distance)| {
                             (
-                                acc.0 + (self.boids[idx].x - pos.x) * (1.0 / distance),
-                                acc.1 + (self.boids[idx].y - pos.y) * (1.0 / distance),
-                                acc.2 + (self.boids[idx].z - pos.z) * (1.0 / distance),
+                                acc.0 + (self.boids[idx].x - pos.x) * (0.1 / distance),
+                                acc.1 + (self.boids[idx].y - pos.y) * (0.1 / distance),
+                                acc.2 + (self.boids[idx].z - pos.z) * (0.1 / distance),
                             )
                         },
                     );
