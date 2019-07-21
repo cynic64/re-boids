@@ -4,7 +4,8 @@ use re::*;
 extern crate nalgebra as na;
 use na::{Point3, Vector3};
 
-const WORLD_RADIUS: f32 = 32.0;
+use crate::WORLD_RADIUS;
+
 const BOID_SIZE: f32 = 0.1;
 const MAX_VEL: f32 = 5.0;
 
@@ -150,8 +151,8 @@ impl BoidWorld {
         let attractor_spec = ObjectSpec::from_mesh(attractor_verts);
         self.world_com.add_object_from_spec("attractor".to_string(), attractor_spec);
 
-        self.repulsor.z = (time / 1.4).sin() * 16.0;
-        self.repulsor.y = (time / 1.4).cos() * 16.0;
+        self.repulsor.x = (time).sin() * 16.0;
+        self.repulsor.y = (time).cos() * 16.0;
         let repulsor_verts = mesh_gen::create_vertices_for_sphere([self.repulsor.x, self.repulsor.y, self.repulsor.z], BOID_SIZE * 8.0, [1.0, 0.0, 0.5]);
         let repulsor_spec = ObjectSpec::from_mesh(repulsor_verts);
         self.world_com.add_object_from_spec("repulsor".to_string(), repulsor_spec);
